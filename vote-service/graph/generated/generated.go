@@ -46,7 +46,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateVote func(childComplexity int, option int, name string, message *string) int
+		CreateVote func(childComplexity int, id string, option int, name string, message *string) int
 	}
 
 	Query struct {
@@ -54,10 +54,11 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		Voted func(childComplexity int) int
+		Voted func(childComplexity int, id string) int
 	}
 
 	Vote struct {
+		ID      func(childComplexity int) int
 		Message func(childComplexity int) int
 		Name    func(childComplexity int) int
 		Option  func(childComplexity int) int
@@ -65,13 +66,13 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateVote(ctx context.Context, option int, name string, message *string) (*model.Vote, error)
+	CreateVote(ctx context.Context, id string, option int, name string, message *string) (*model.Vote, error)
 }
 type QueryResolver interface {
 	GetVote(ctx context.Context) (*model.Vote, error)
 }
 type SubscriptionResolver interface {
-	Voted(ctx context.Context) (<-chan *model.Vote, error)
+	Voted(ctx context.Context, id string) (<-chan *model.Vote, error)
 }
 
 type executableSchema struct {
@@ -99,7 +100,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateVote(childComplexity, args["option"].(int), args["name"].(string), args["message"].(*string)), true
+		return e.complexity.Mutation.CreateVote(childComplexity, args["id"].(string), args["option"].(int), args["name"].(string), args["message"].(*string)), true
 
 	case "Query.getVote":
 		if e.complexity.Query.GetVote == nil {
@@ -113,7 +114,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Subscription.Voted(childComplexity), true
+		args, err := ec.field_Subscription_voted_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.Voted(childComplexity, args["id"].(string)), true
+
+	case "Vote.id":
+		if e.complexity.Vote.ID == nil {
+			break
+		}
+
+		return e.complexity.Vote.ID(childComplexity), true
 
 	case "Vote.message":
 		if e.complexity.Vote.Message == nil {
@@ -218,6 +231,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "graph/schema.graphqls", Input: `type Vote {
+  id: String!
   option: Int!
   name: String!
   message: String
@@ -228,11 +242,11 @@ type Query {
 }
 
 type Mutation {
-  createVote(option: Int!, name: String!, message: String): Vote!
+  createVote(id: String!, option: Int!, name: String!, message: String): Vote!
 }
 
 type Subscription {
-  voted: Vote!
+  voted(id: String!): Vote!
 }
 `, BuiltIn: false},
 }
@@ -245,33 +259,42 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createVote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
 	if tmp, ok := rawArgs["option"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("option"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["option"] = arg0
-	var arg1 string
+	args["option"] = arg1
+	var arg2 string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg1
-	var arg2 *string
+	args["name"] = arg2
+	var arg3 *string
 	if tmp, ok := rawArgs["message"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["message"] = arg2
+	args["message"] = arg3
 	return args, nil
 }
 
@@ -287,6 +310,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_voted_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -353,7 +391,7 @@ func (ec *executionContext) _Mutation_createVote(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateVote(rctx, args["option"].(int), args["name"].(string), args["message"].(*string))
+		return ec.resolvers.Mutation().CreateVote(rctx, args["id"].(string), args["option"].(int), args["name"].(string), args["message"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -492,9 +530,16 @@ func (ec *executionContext) _Subscription_voted(ctx context.Context, field graph
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_voted_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Voted(rctx)
+		return ec.resolvers.Subscription().Voted(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -519,6 +564,41 @@ func (ec *executionContext) _Subscription_voted(ctx context.Context, field graph
 			w.Write([]byte{'}'})
 		})
 	}
+}
+
+func (ec *executionContext) _Vote_id(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Vote",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Vote_option(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
@@ -1859,6 +1939,11 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Vote")
+		case "id":
+			out.Values[i] = ec._Vote_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "option":
 			out.Values[i] = ec._Vote_option(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

@@ -1,4 +1,5 @@
 type Vote {
+  id: String!
   option: Int!
   name: String!
   message: String
@@ -9,9 +10,9 @@ type Query {
 }
 
 type Mutation {
-  createVote(option: Int!, name: String!, message: String): Vote!
+  createVote(id: String!, option: Int!, name: String!, message: String): Vote!
 }
 
 type Subscription {
-  voted: Vote!
+  voted(id: String!): Vote!
 }

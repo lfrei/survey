@@ -6,34 +6,36 @@ package graph
 import (
 	"context"
 	"fmt"
-
 	"github.com/lfrei/survey/vote-service/graph/generated"
 	"github.com/lfrei/survey/vote-service/graph/model"
 )
 
-func (r *mutationResolver) CreateVote(ctx context.Context, option int, name string, message *string) (*model.Vote, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) CreateVote(ctx context.Context, id string, option int, name string, message *string) (*model.Vote, error) {
+	vote := &model.Vote{
+		ID:      id,
+		Option:  option,
+		Name:    name,
+		Message: message,
+	}
+	r.votes = append(r.votes, vote)
+	return vote, nil
 }
 
 func (r *queryResolver) GetVote(ctx context.Context) (*model.Vote, error) {
-
-	vote := model.Vote{
-		Option: 1,
-		Name:   "User 1",
+	if len(r.votes) == 0 {
+		return nil, fmt.Errorf("no votes available")
 	}
-
-	return &vote, nil
+	return r.votes[len(r.votes)-1], nil
 }
 
-func (r *subscriptionResolver) Voted(ctx context.Context) (<-chan *model.Vote, error) {
+func (r *subscriptionResolver) Voted(ctx context.Context, id string) (<-chan *model.Vote, error) {
 	vc := make(chan *model.Vote, 1)
 
-	vote := model.Vote{
-		Option: 2,
-		Name:   "User 2",
+	for i := range r.votes {
+		if id == r.votes[i].ID {
+			vc <- r.votes[i]
+		}
 	}
-
-	vc <- &vote
 
 	return vc, nil
 }

@@ -3,6 +3,7 @@
 package model
 
 type Vote struct {
+	ID      string  `json:"id"`
 	Option  int     `json:"option"`
 	Name    string  `json:"name"`
 	Message *string `json:"message"`
