@@ -13,10 +13,11 @@ import (
 	"github.com/lfrei/survey/vote-service/graph"
 	"github.com/lfrei/survey/vote-service/graph/generated"
 	"net/http"
+	"time"
 )
 
-func newGraphQLServer() *handler.Server {
-	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+func newGraphQLServer(resolver *graph.Resolver) *handler.Server {
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
@@ -31,6 +32,7 @@ func newGraphQLServer() *handler.Server {
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
 		},
+		KeepAlivePingInterval: 10 * time.Second,
 	})
 
 	return srv
@@ -68,7 +70,10 @@ func newRouter(srv *handler.Server) *gin.Engine {
 }
 
 func main() {
-	server := newGraphQLServer()
+	resolver := graph.NewResolver()
+	resolver.SubscribeToTopic("votes")
+
+	server := newGraphQLServer(resolver)
 	router := newRouter(server)
 
 	router.Run()

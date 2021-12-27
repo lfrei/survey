@@ -9,7 +9,6 @@ import (
 	"io"
 	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -37,7 +36,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
-	Query() QueryResolver
 	Subscription() SubscriptionResolver
 }
 
@@ -50,7 +48,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetVote func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -67,9 +64,6 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateVote(ctx context.Context, id string, option int, name string, message *string) (*model.Vote, error)
-}
-type QueryResolver interface {
-	GetVote(ctx context.Context) (*model.Vote, error)
 }
 type SubscriptionResolver interface {
 	Voted(ctx context.Context, id string) (<-chan *model.Vote, error)
@@ -101,13 +95,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateVote(childComplexity, args["id"].(string), args["option"].(int), args["name"].(string), args["message"].(*string)), true
-
-	case "Query.getVote":
-		if e.complexity.Query.GetVote == nil {
-			break
-		}
-
-		return e.complexity.Query.GetVote(childComplexity), true
 
 	case "Subscription.voted":
 		if e.complexity.Subscription.Voted == nil {
@@ -235,10 +222,6 @@ var sources = []*ast.Source{
   option: Int!
   name: String!
   message: String
-}
-
-type Query {
-  getVote: Vote!
 }
 
 type Mutation {
@@ -392,41 +375,6 @@ func (ec *executionContext) _Mutation_createVote(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateVote(rctx, args["id"].(string), args["option"].(int), args["name"].(string), args["message"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.Vote)
-	fc.Result = res
-	return ec.marshalNVote2ᚖgithubᚗcomᚋlfreiᚋsurveyᚋvoteᚑserviceᚋgraphᚋmodelᚐVote(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_getVote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetVote(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1879,20 +1827,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "getVote":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getVote(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":

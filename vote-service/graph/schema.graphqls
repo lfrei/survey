@@ -5,10 +5,6 @@ type Vote {
   message: String
 }
 
-type Query {
-  getVote: Vote!
-}
-
 type Mutation {
   createVote(id: String!, option: Int!, name: String!, message: String): Vote!
 }
