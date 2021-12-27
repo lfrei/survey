@@ -1,0 +1,17 @@
+type Vote {
+  option: Int!
+  name: String!
+  message: String
+}
+
+type Query {
+  getVote: Vote!
+}
+
+type Mutation {
+  createVote(option: Int!, name: String!, message: String): Vote!
+}
+
+type Subscription {
+  voted: Vote!
+}
