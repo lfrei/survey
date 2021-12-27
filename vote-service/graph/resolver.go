@@ -1,48 +1,18 @@
 package graph
 
 import (
-	"encoding/json"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lfrei/survey/vote-service/graph/model"
+	"github.com/lfrei/survey/vote-service/messaging"
 )
 
 type Resolver struct {
-	voteChannel chan *model.Vote
+	voteChannels map[string]chan *model.Vote
 }
 
 func NewResolver() *Resolver {
-	return &Resolver{
-		voteChannel: make(chan *model.Vote, 1),
+	resolver := &Resolver{
+		voteChannels: map[string]chan *model.Vote{},
 	}
-}
-
-func (r *Resolver) SubscribeToTopic(topic string) {
-	go func() {
-		c, err := kafka.NewConsumer(&kafka.ConfigMap{
-			"bootstrap.servers": "localhost",
-			"group.id":          "vote-service",
-			"auto.offset.reset": "earliest",
-		})
-
-		if err != nil {
-			panic(err)
-		}
-
-		err = c.SubscribeTopics([]string{topic}, nil)
-
-		if err != nil {
-			panic(err)
-		}
-
-		for {
-			msg, err := c.ReadMessage(-1)
-			if err == nil {
-				value := string(msg.Value)
-				vote := model.Vote{}
-				json.Unmarshal([]byte(value), &vote)
-
-				r.voteChannel <- &vote
-			}
-		}
-	}()
+	messaging.SubscribeToTopic("votes", resolver.voteChannels)
+	return resolver
 }

@@ -71,8 +71,6 @@ func newRouter(srv *handler.Server) *gin.Engine {
 
 func main() {
 	resolver := graph.NewResolver()
-	resolver.SubscribeToTopic("votes")
-
 	server := newGraphQLServer(resolver)
 	router := newRouter(server)
 

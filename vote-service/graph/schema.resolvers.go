@@ -5,10 +5,9 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lfrei/survey/vote-service/graph/generated"
 	"github.com/lfrei/survey/vote-service/graph/model"
+	"github.com/lfrei/survey/vote-service/messaging"
 )
 
 func (r *mutationResolver) CreateVote(ctx context.Context, id string, option int, name string, message *string) (*model.Vote, error) {
@@ -19,15 +18,17 @@ func (r *mutationResolver) CreateVote(ctx context.Context, id string, option int
 		Message: message,
 	}
 
-	sendToTopic("votes", vote)
+	messaging.SendToTopic("votes", vote)
 	return vote, nil
 }
 
 func (r *subscriptionResolver) Voted(ctx context.Context, id string) (<-chan *model.Vote, error) {
-	//TODO filter votes by id
-	vc := make(chan *model.Vote, 1)
-	r.voteChannel = vc
-	return vc, nil
+	if voteChannel, exists := r.voteChannels[id]; exists {
+		return voteChannel, nil
+	} else {
+		r.voteChannels[id] = make(chan *model.Vote)
+		return r.voteChannels[id], nil
+	}
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -38,21 +39,3 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 
 type mutationResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-func sendToTopic(topic string, vote *model.Vote) {
-	p, _ := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost",
-	})
-	defer p.Close()
-
-	voteJson, _ := json.Marshal(vote)
-	msg := &kafka.Message{
-		TopicPartition: kafka.TopicPartition{
-			Topic:     &topic,
-			Partition: kafka.PartitionAny,
-		},
-		Value: voteJson,
-	}
-
-	p.Produce(msg, nil)
-}
