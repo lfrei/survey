@@ -1,11 +1,16 @@
 const { Kafka } = require('kafkajs')
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuid } = require('uuid');
 
 const surveyTopic = 'survey'
+const totalVotesTopic = 'total-votes'
+
 const kafka = new Kafka({
     clientId: 'survey-service',
     brokers: ['localhost:9092']
 })
+
+const surveys = new Map();
+const votes = new Map();
 
 module.exports = {
     sendSurvey: async function(survey) {
@@ -28,11 +33,36 @@ module.exports = {
         })
     
         await producer.disconnect()
+    },
 
-        return survey
-    }
+    loadSurveys: async function() {
+        loadToStore(surveyTopic, surveys)
+    },
+
+    loadVotes: async function() {
+        loadToStore(totalVotesTopic, votes)
+    },
+
+    surveys,
+    votes
 };
 
+async function loadToStore(topic, store) {
+    const consumer = kafka.consumer({ groupId: uuid() })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic: topic, fromBeginning: true })
+
+    await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            store.set(
+                message.key.toString(), 
+                JSON.parse(message.value)
+            )
+        },
+    })
+}
+
 function generateId(survey) {
-    survey.id = uuidv4()
+    survey.id = uuid()
 }

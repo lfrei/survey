@@ -7,15 +7,27 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 app.get('/survey/:id', (req, res) => {
-    //TODO implement
-    res.send('Requested survey with id ' + req.params.id)
+    const survey = kafka.surveys.get(req.params.id)
+    const votes = kafka.votes.get(req.params.id);
+
+    if (survey) {
+        const surveyWithVotes = Object.assign(survey, votes)
+        res.status(200)  
+        res.send(surveyWithVotes)
+    } else {
+        res.status(404)
+        res.send()
+    }
 })
 
 app.post('/survey', function (req, res) {
-    kafka.sendSurvey(req.body);
+    kafka.sendSurvey(req.body)
 
     res.status(201);
-    res.send('Survey created');
+    res.send('Survey created')
 });
 
-app.listen(3000);
+app.listen(3000)
+
+kafka.loadSurveys()
+kafka.loadVotes()
