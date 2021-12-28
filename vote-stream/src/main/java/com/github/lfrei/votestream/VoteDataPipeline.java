@@ -1,5 +1,6 @@
 package com.github.lfrei.votestream;
 
+import com.github.lfrei.votestream.operator.VoteAggregator;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,7 @@ public class VoteDataPipeline {
    @Bean
     public Function<KStream<String, String>, KTable<String, String>> process() {
         return input -> input
-                .filter((key, value) -> "55555".equals(key))
-                .toTable();
+                .groupByKey()
+                .aggregate(() -> null, new VoteAggregator());
     }
 }
