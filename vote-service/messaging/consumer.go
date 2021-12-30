@@ -25,12 +25,13 @@ func SubscribeToTopic(topic string, voteChannels map[string]chan *model.Vote) {
 				vote := model.Vote{}
 				json.Unmarshal([]byte(value), &vote)
 
-				if voteChannel, exists := voteChannels[key]; exists {
-					voteChannel <- &vote
-				} else {
-					voteChannels[key] = make(chan *model.Vote)
-					voteChannels[key] <- &vote
+				voteChannel, exists := voteChannels[key]
+				if !exists {
+					voteChannel = make(chan *model.Vote)
+					voteChannels[key] = voteChannel
 				}
+
+				voteChannel <- &vote
 			}
 		}
 	}()

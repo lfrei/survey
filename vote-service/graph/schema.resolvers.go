@@ -23,12 +23,12 @@ func (r *mutationResolver) CreateVote(ctx context.Context, id string, option int
 }
 
 func (r *subscriptionResolver) Voted(ctx context.Context, id string) (<-chan *model.Vote, error) {
-	if voteChannel, exists := r.voteChannels[id]; exists {
-		return voteChannel, nil
-	} else {
-		r.voteChannels[id] = make(chan *model.Vote)
-		return r.voteChannels[id], nil
+	voteChannel, exists := r.voteChannels[id]
+	if !exists {
+		voteChannel = make(chan *model.Vote)
+		r.voteChannels[id] = voteChannel
 	}
+	return voteChannel, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
