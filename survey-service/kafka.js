@@ -2,7 +2,7 @@ const { Kafka } = require('kafkajs')
 const { v4: uuid } = require('uuid');
 
 const surveyTopic = 'survey'
-const totalVotesTopic = 'total-votes'
+const votesTopic = 'votes-by-survey'
 
 const kafka = new Kafka({
     clientId: 'survey-service',
@@ -40,7 +40,7 @@ module.exports = {
     },
 
     loadVotes: async function() {
-        loadToStore(totalVotesTopic, votes)
+        loadToStore(votesTopic, votes)
     },
 
     surveys,
