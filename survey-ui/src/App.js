@@ -3,6 +3,7 @@ import { ApolloProvider } from '@apollo/client';
 import VoteTicker from './components/VoteTicker';
 import client from './apollo/apollo-client';
 import CreateSurvey from './components/CreateSurvey';
+import ShowSurvey from './components/ShowSurvey';
 import {
   BrowserRouter as Router,
   Switch,
@@ -16,6 +17,7 @@ function App() {
         <div className="container-fluid">
           <Switch>
             <Route path="/:surveyId">
+              <ShowSurvey />
               <VoteTicker />
             </Route>
             <Route path="/">

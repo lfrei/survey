@@ -12,16 +12,15 @@ function VoteTicker() {
   useSubscription(voted, { 
     variables: { surveyId },
     onSubscriptionData: ({ subscriptionData: { data } }) => {
-      console.log(data)
       setVotes(votes => [...votes, data?.voted])
     },
   });
 
   return (
     <div>
-      <h3>See Votes for {surveyId}:</h3>
-
-      {votes.map((v, i) => <Alert key={i} variant="info">{v.name} has voted for option {v.option}</Alert>)}
+      {votes.map((v, i) => (
+        <Alert key={i} variant="info">{v.name} has voted for option {v.option}</Alert>
+      ))}
     </div>
   );
 }
