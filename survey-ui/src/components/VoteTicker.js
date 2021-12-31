@@ -2,6 +2,7 @@ import './VoteTicker.css';
 import React, { useState } from 'react';
 import { useSubscription } from '@apollo/client';
 import voted from '../apollo/subscription/voted';
+import Alert from 'react-bootstrap/Alert';
 
 function VoteTicker({ surveyId }) {
   const [votes, setVotes] = useState([]);
@@ -16,10 +17,9 @@ function VoteTicker({ surveyId }) {
 
   return (
     <div>
-      See Votes for {surveyId}:
-      <ul>
-        {votes.map((v, i) => <li key={i}>{v.name} has voted for option {v.option}</li>)}
-      </ul>
+      <h3>See Votes for {surveyId}:</h3>
+
+      {votes.map((v, i) => <Alert key={i} variant="info">{v.name} has voted for option {v.option}</Alert>)}
     </div>
   );
 }
