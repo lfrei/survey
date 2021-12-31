@@ -1,10 +1,13 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors');
 const kafka = require('./kafka')
 
 const app = express()
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(cors());
+app.options('*', cors());
 
 app.get('/survey/:id', (req, res) => {
     const survey = kafka.surveys.get(req.params.id)
