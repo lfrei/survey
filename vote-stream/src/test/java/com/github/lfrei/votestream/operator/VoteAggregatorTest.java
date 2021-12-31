@@ -18,6 +18,7 @@ class VoteAggregatorTest {
 
         String incrementedVotes = voteAggregator.apply("55555", vote, votes);
 
+        assertThat(json.from(incrementedVotes)).extractingJsonPathNumberValue("$.totalVotes").isEqualTo(26);
         assertThat(json.from(incrementedVotes)).extractingJsonPathMapValue("$.votesByOption")
                 .isEqualTo(Map.of("1", 21, "2", 5));
     }
@@ -28,6 +29,7 @@ class VoteAggregatorTest {
 
         String incrementedVotes = voteAggregator.apply("55555", vote, null);
 
+        assertThat(json.from(incrementedVotes)).extractingJsonPathNumberValue("$.totalVotes").isEqualTo(1);
         assertThat(json.from(incrementedVotes)).extractingJsonPathMapValue("$.votesByOption")
                 .isEqualTo(Map.of("2", 1));
     }
@@ -39,6 +41,7 @@ class VoteAggregatorTest {
 
         String incrementedVotes = voteAggregator.apply("55555", vote, votes);
 
+        assertThat(json.from(incrementedVotes)).extractingJsonPathNumberValue("$.totalVotes").isEqualTo(26);
         assertThat(json.from(incrementedVotes)).extractingJsonPathMapValue("$.votesByOption")
                 .isEqualTo(Map.of("1", 20, "2", 5, "3", 1));
     }

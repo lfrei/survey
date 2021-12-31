@@ -27,7 +27,12 @@ public class VoteAggregator implements Aggregator<String, String, String> {
         JSONObject votes = new JSONObject();
         votesByOption.forEach(votes::appendField);
 
+        int totalVotes = votesByOption.values().stream()
+                .mapToInt(v -> v)
+                .sum();
+
         return new JSONObject()
+                .appendField("totalVotes", totalVotes)
                 .appendField("votesByOption", votes)
                 .toJSONString();
     }
