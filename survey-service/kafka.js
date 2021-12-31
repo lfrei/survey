@@ -33,6 +33,8 @@ module.exports = {
         })
     
         await producer.disconnect()
+
+        return survey
     },
 
     loadSurveys: async function() {

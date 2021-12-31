@@ -2,13 +2,28 @@ import './App.css';
 import { ApolloProvider } from '@apollo/client';
 import VoteTicker from './components/VoteTicker';
 import client from './apollo/apollo-client';
+import CreateSurvey from './components/CreateSurvey';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from 'react-router-dom';
 
 function App() {
   return (
     <ApolloProvider client={client}>
-      <div className="container-fluid">
-        <VoteTicker surveyId="55555" />
-      </div>
+      <Router basename={process.env.PUBLIC_URL}>
+        <div className="container-fluid">
+          <Switch>
+            <Route path="/:surveyId">
+              <VoteTicker />
+            </Route>
+            <Route path="/">
+              <CreateSurvey />
+            </Route>
+          </Switch>
+        </div>
+      </Router>
     </ApolloProvider>   
   );
 }

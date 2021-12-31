@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { useSubscription } from '@apollo/client';
 import voted from '../apollo/subscription/voted';
 import Alert from 'react-bootstrap/Alert';
+import { useParams } from "react-router-dom";
 
-function VoteTicker({ surveyId }) {
+function VoteTicker() {
+  const { surveyId } = useParams();
   const [votes, setVotes] = useState([]);
 
   useSubscription(voted, { 

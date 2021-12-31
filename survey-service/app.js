@@ -23,11 +23,11 @@ app.get('/survey/:id', (req, res) => {
     }
 })
 
-app.post('/survey', function (req, res) {
-    kafka.sendSurvey(req.body)
+app.post('/survey', async function (req, res) {
+    const survey = await kafka.sendSurvey(req.body)
 
     res.status(201);
-    res.send('Survey created')
+    res.send(survey)
 });
 
 app.listen(3000)
