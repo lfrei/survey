@@ -22,11 +22,12 @@ function ShowSurvey() {
 
   const updateSurvey = (survey) => {
       setSurvey(survey);
-      setVotes(10); //TODO set total votes
+      if (survey.totalVotes) {
+          setVotes(survey.totalVotes);
+      }
   }
 
-  const onVote = (e) => {
-    setVoted(true);
+  const onVote = (e) => { 
     const key = e.target.id;
     voteForOption({ 
         variables: { 
@@ -36,6 +37,7 @@ function ShowSurvey() {
             message: "Test Message"
         } 
     });
+    setVoted(true);
   }
 
   return (
@@ -57,7 +59,7 @@ function ShowSurvey() {
                     key={i} id={i} 
                     variant="success" 
                     label={option} 
-                    now={2} //TODO use votesByOption
+                    now={survey?.votesByOption?.[i]}
                     max={votes} 
                 />
             ))}
