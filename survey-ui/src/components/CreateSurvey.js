@@ -11,6 +11,7 @@ function CreateSurvey() {
         title: "",
         description: "",
         creator: "",
+        status: "private",
         options: []
     });
 
@@ -83,6 +84,16 @@ function CreateSurvey() {
                     value={survey.creator}
                     onChange={onChangeSurvey}
                 />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>Status</Form.Label>
+                <Form.Select
+                    id="status"
+                    onChange={onChangeSurvey}>
+                    <option>private</option>
+                    <option>public</option>
+                </Form.Select>
             </Form.Group>
     
             {survey.options.map((o, i) => (

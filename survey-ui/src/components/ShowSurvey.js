@@ -5,6 +5,7 @@ import { useMutation } from '@apollo/client';
 import Card  from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import ProgressBar from 'react-bootstrap/ProgressBar';
+import Badge from 'react-bootstrap/Badge';
 import vote from '../apollo/mutation/vote';
 
 function ShowSurvey() {
@@ -43,8 +44,13 @@ function ShowSurvey() {
   return (
     <Card className="survey-card">
         <Card.Body>
-            <Card.Title>{survey?.title}</Card.Title>
-            <Card.Text>{survey?.description}</Card.Text>
+            <Card.Title>
+                {survey?.title}  
+                <Badge bg="secondary" className="status">{survey?.status}</Badge>
+            </Card.Title>
+            <Card.Text>
+                {survey?.description}
+            </Card.Text>
             {!voted && survey?.options.map((option, i) => (
                 <Button 
                     className="vote-option" 

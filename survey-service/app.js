@@ -11,7 +11,7 @@ app.options('*', cors());
 
 app.get('/survey/:id', (req, res) => {
     const survey = kafka.surveys.get(req.params.id)
-    const votes = kafka.votes.get(req.params.id);
+    const votes = kafka.votes.get(req.params.id)
 
     if (survey) {
         const surveyWithVotes = Object.assign(survey, votes)
@@ -21,6 +21,16 @@ app.get('/survey/:id', (req, res) => {
         res.status(404)
         res.send()
     }
+})
+
+app.get('/surveys', (req, res) => {
+    const surveys = Array
+        .from(kafka.surveys.values())
+        .filter(s => s.status === 'public')
+        .map(s => s.id)
+
+    res.status(200)
+    res.send(surveys)
 })
 
 app.post('/survey', async function (req, res) {
