@@ -4,6 +4,7 @@ import VoteTicker from './components/VoteTicker';
 import client from './apollo/apollo-client';
 import CreateSurvey from './components/CreateSurvey';
 import ShowSurvey from './components/ShowSurvey';
+import ShowSurveys from './components/ShowSurveys';
 import {
   BrowserRouter as Router,
   Switch,
@@ -16,12 +17,15 @@ function App() {
       <Router basename={process.env.PUBLIC_URL}>
         <div className="container-fluid">
           <Switch>
+            <Route path="/create">
+              <CreateSurvey />
+            </Route>
             <Route path="/:surveyId">
               <ShowSurvey />
               <VoteTicker />
             </Route>
             <Route path="/">
-              <CreateSurvey />
+              <ShowSurveys />
             </Route>
           </Switch>
         </div>

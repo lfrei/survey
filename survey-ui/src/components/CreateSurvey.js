@@ -52,7 +52,7 @@ function CreateSurvey() {
 
     return (
         <Form onSubmit={onSubmit}>
-            <h3>Create a new survey</h3>
+            <h3 className="title">Create a new survey</h3>
             <Form.Group className="mb-3">
                 <Form.Label>Title</Form.Label>
                 <Form.Control 
@@ -107,16 +107,16 @@ function CreateSurvey() {
                             value={survey.options[i]}
                             onChange={onChangeOption}
                         />
-                        <Button variant="secondary" id={i} onClick={onRemoveOption}>Remove</Button>
+                        <Button variant="outline-secondary" id={i} onClick={onRemoveOption}>Remove</Button>
                     </InputGroup> 
                 </Form.Group>
             ))}
 
-            <Button variant="secondary" onClick={onAddOption}>
+            <Button variant="outline-secondary" onClick={onAddOption}>
                 Add Option
             </Button>
             {' '}
-            <Button variant="primary" type="submit">
+            <Button variant="outline-primary" type="submit">
                 Create Survey
             </Button>
         </Form>
