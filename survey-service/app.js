@@ -27,6 +27,7 @@ app.get('/surveys', (req, res) => {
     const surveys = Array
         .from(kafka.surveys.values())
         .filter(s => s.status === 'public')
+        .filter(s => s.options.length >= 2)
         .map(s => s.id)
 
     res.status(200)

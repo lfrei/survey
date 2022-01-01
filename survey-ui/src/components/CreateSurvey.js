@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import Alert from 'react-bootstrap/Alert';
 import { useHistory } from 'react-router-dom';
 
 function CreateSurvey() {
@@ -39,6 +40,10 @@ function CreateSurvey() {
     const onSubmit = (event) => {
         event.preventDefault();
 
+        if (notEnoughOptions()) {
+            return;
+        }
+
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -48,6 +53,10 @@ function CreateSurvey() {
         fetch('http://localhost:3000/survey', requestOptions)
             .then(response => response.json())
             .then(data => history.push('/' + data.id));
+    }
+
+    const notEnoughOptions = () => {
+        return survey.options.length < 2;
     }
 
     return (
@@ -111,6 +120,8 @@ function CreateSurvey() {
                     </InputGroup> 
                 </Form.Group>
             ))}
+
+            {notEnoughOptions() && <Alert variant="info">Add more options to create a survey</Alert>}
 
             <Button variant="outline-secondary" onClick={onAddOption}>
                 Add Option
