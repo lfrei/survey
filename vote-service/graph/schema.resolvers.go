@@ -23,10 +23,14 @@ func (r *mutationResolver) CreateVote(ctx context.Context, id string, option int
 }
 
 func (r *subscriptionResolver) Voted(ctx context.Context, id string) (<-chan *model.Vote, error) {
+	r.mutex.RLock()
 	voteChannel, exists := r.voteChannels[id]
+	r.mutex.RUnlock()
 	if !exists {
-		voteChannel = make(chan *model.Vote)
+		voteChannel = make(chan *model.Vote, 1)
+		r.mutex.Lock()
 		r.voteChannels[id] = voteChannel
+		r.mutex.Unlock()
 	}
 	return voteChannel, nil
 }

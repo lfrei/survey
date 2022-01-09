@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lfrei/survey/vote-service/graph/model"
+	"sync"
 )
 
-func SubscribeToTopic(topic string, voteChannels map[string]chan *model.Vote) {
+func SubscribeToTopic(topic string, voteChannels map[string]chan *model.Vote, mutex *sync.RWMutex) {
 	go func() {
 		c, _ := kafka.NewConsumer(&kafka.ConfigMap{
 			"bootstrap.servers": "localhost",
@@ -25,10 +26,14 @@ func SubscribeToTopic(topic string, voteChannels map[string]chan *model.Vote) {
 				vote := model.Vote{}
 				json.Unmarshal([]byte(value), &vote)
 
+				mutex.RLock()
 				voteChannel, exists := voteChannels[key]
+				mutex.RUnlock()
 				if !exists {
-					voteChannel = make(chan *model.Vote)
+					voteChannel = make(chan *model.Vote, 1)
+					mutex.Lock()
 					voteChannels[key] = voteChannel
+					mutex.Unlock()
 				}
 
 				voteChannel <- &vote
